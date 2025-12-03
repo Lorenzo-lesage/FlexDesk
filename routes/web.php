@@ -1,13 +1,14 @@
 <?php
 
-use App\Http\Controllers\ProfileController;
-use Illuminate\Foundation\Application;
-use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
 use Laravel\Socialite\Facades\Socialite;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Route;
+use Inertia\Inertia;
 use App\Models\User;
+use App\Http\Controllers\ProfileController;
+use Illuminate\Foundation\Application;
 
+// Rotte principali
 Route::get('/', function () {
     return Inertia::render('Welcome', [
         'canLogin' => Route::has('login'),
@@ -21,30 +22,54 @@ Route::get('/dashboard', function () {
     return Inertia::render('Dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
+// Rotte profilo
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-// Redirect all’utente al provider
-Route::get('/auth/{provider}', function ($provider) {
+// 🔹 Redirect al provider (con stateless)
+Route::get('/auth/{provider}', action: function ($provider) {
     return Socialite::driver($provider)->redirect();
 })->name('oauth.redirect');
 
-// Callback dal provider
+// 🔹 Callback
 Route::get('/auth/{provider}/callback', function ($provider) {
-    $socialUser = Socialite::driver($provider)->user();
+    try {
+        $socialUser = Socialite::driver($provider)->user();
 
-    // Cerca l'utente esistente o creane uno nuovo
-    $user = User::firstOrCreate(
-        ['email' => $socialUser->getEmail()],
-        ['name' => $socialUser->getName()]
-    );
+        $email = $socialUser->getEmail();
+        if (!$email) {
+            return redirect('/login')->with('error', 'Email not provided by ' . $provider);
+        }
 
-    Auth::login($user);
+        $user = User::where('email', $email)->first();
 
-    return redirect('/dashboard');
-})->name('oauth.callback');
+        if (!$user) {
+            $user = User::create([
+                'name' => $socialUser->getName() ?? $socialUser->getNickname(),
+                'email' => $email,
+                'provider' => $provider,
+                'provider_id' => $socialUser->getId(),
+                'password' => bcrypt(str()->random(16)),
+            ]);
+        } else {
+            $user->update([
+                'provider' => $user->provider ?? $provider,
+                'provider_id' => $user->provider_id ?? $socialUser->getId(),
+            ]);
+        }
 
-require __DIR__.'/auth.php';
+        Auth::login($user);
+
+        return Inertia::location('/dashboard');
+
+    } catch (\Exception $e) {
+        \Log::error('OAuth callback error: '.$e->getMessage(), ['trace' => $e->getTraceAsString()]);
+        return redirect('/login')->with('error', 'Login failed');
+    }
+});
+
+
+require __DIR__ . '/auth.php';

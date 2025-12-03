@@ -29,12 +29,28 @@ export function LoginForm({
     canResetPassword?: boolean;
     className?: string;
 }) {
+    /*
+    |-----------------------------------------------------------
+    | Data
+    |-----------------------------------------------------------
+    */
+
     const { data, setData, post, processing, errors, reset } = useForm({
         email: "",
         password: "",
         remember: false,
     });
 
+    /*
+    |-----------------------------------------------------------
+    | Methods
+    |-----------------------------------------------------------
+    */
+
+    /**
+     * Handles the form submission.
+     * @param e
+     */
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
 
@@ -42,6 +58,13 @@ export function LoginForm({
             onFinish: () => reset("password"),
         });
     };
+
+
+    /*
+    |-----------------------------------------------------------
+    | Render
+    |-----------------------------------------------------------
+    */
 
     return (
         <div className={cn("flex flex-col gap-6", className)} {...props}>
