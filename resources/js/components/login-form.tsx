@@ -2,24 +2,25 @@ import { cn } from "@/lib/utils";
 import { useForm } from "@inertiajs/react";
 
 // UI Components
-import { Button } from "@/Components/ui/button";
+import { Button } from "@/components/ui/button";
 import {
     Card,
     CardContent,
     CardDescription,
     CardHeader,
     CardTitle,
-} from "@/Components/ui/card";
+} from "@/components/ui/card";
 import {
     Field,
     FieldDescription,
     FieldGroup,
     FieldLabel,
     FieldSeparator,
-} from "@/Components/ui/field";
-import { Input } from "@/Components/ui/input";
-import { Label } from "@/Components/ui/label";
-import { Checkbox } from "@/Components/ui/checkbox";
+} from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import { toast } from "sonner";
 
 export function LoginForm({
     className,
@@ -54,11 +55,30 @@ export function LoginForm({
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
 
+        if (!data.email || !data.password) {
+            toast.error("Campi mancanti", {
+                description: "Inserisci email e password",
+            });
+            return;
+        }
+
         post(route("login"), {
+            onSuccess: () => {
+                toast.success("Logged in!", {
+                    description: "Welcome back to FlexDesk",
+                });
+            },
+            onError: (errors) => {
+                toast.error("Login failed", {
+                    description:
+                        errors.email ||
+                        errors.password ||
+                        "Check your credentials and try again.",
+                });
+            },
             onFinish: () => reset("password"),
         });
     };
-
 
     /*
     |-----------------------------------------------------------

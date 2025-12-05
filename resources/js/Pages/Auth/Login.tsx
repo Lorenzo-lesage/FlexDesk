@@ -2,7 +2,7 @@ import GuestLayout from '@/Layouts/GuestLayout';
 import { Head } from '@inertiajs/react';
 
 // Components
-import { LoginForm } from "@/Components/login-form";
+import { LoginForm } from "@/components/login-form";
 
 
 export default function Login({ status, canResetPassword } : { status?: string, canResetPassword?: boolean }) {

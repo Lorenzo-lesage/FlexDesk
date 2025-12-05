@@ -1,12 +1,12 @@
-import { PageProps } from "@/types";
 import { Head, Link } from "@inertiajs/react";
 import { useState } from "react";
 
 // Components
-import { Button } from "@/Components/ui/button";
+import { Button } from "@/components/ui/button";
 
 export default function Welcome() {
     const [count, setCount] = useState(0);
+
 
     return (
         <>
@@ -24,13 +24,10 @@ export default function Welcome() {
                 </div>
                 <div className="mt-10 w-full max-w-md">
                     <Link href={route("login")}>
-                        <Button variant="outline">
-                            Go to Login Page
-                        </Button>
+                        <Button variant="outline">Go to Login Page</Button>
                     </Link>
                 </div>
             </div>
-
         </>
     );
 }
